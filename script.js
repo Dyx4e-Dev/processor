@@ -674,12 +674,22 @@ function showHazardExplanation() {
 /**
  * Menginisialisasi chart benchmark
  */
+// ==================== BENCHMARK CHART ====================
+
+let updateChart; // Variabel global untuk menyimpan function updateChart
+
+/**
+ * Menginisialisasi chart benchmark
+ */
 function initializeBenchmarkChart() {
     const svgWidth = 600;
     const svgHeight = 400;
     const margin = { top: 20, right: 30, bottom: 40, left: 40 };
     const width = svgWidth - margin.left - margin.right;
     const height = svgHeight - margin.top - margin.bottom;
+    
+    // Clear existing chart
+    d3.select("#benchmark-chart").html("");
     
     const svg = d3.select("#benchmark-chart")
         .append("svg")
@@ -705,18 +715,35 @@ function initializeBenchmarkChart() {
     
     g.append("g")
         .attr("class", "y-axis");
+
+    // Add Y-axis label
+    g.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .style("fill", "#fff")
+        .text("Performance (%)");
     
     // Tooltip
     const tooltip = d3.select("body")
         .append("div")
         .attr("class", "chart-tooltip")
+        .style("position", "absolute")
+        .style("background", "rgba(0, 0, 0, 0.8)")
+        .style("color", "white")
+        .style("padding", "8px")
+        .style("border-radius", "4px")
+        .style("font-size", "12px")
+        .style("pointer-events", "none")
         .style("opacity", 0);
     
     /**
      * Memperbarui chart dengan data workload tertentu
      * @param {string} workload - Jenis workload
      */
-    function updateChart(workload) {
+    function updateChartFunction(workload) {
         const data = Object.entries(benchmarkData[workload]).map(([core, performance]) => ({
             core,
             performance
@@ -749,7 +776,7 @@ function initializeBenchmarkChart() {
             .remove();
         
         // Masuk
-        bars.enter()
+        const barsEnter = bars.enter()
             .append("rect")
             .attr("class", "bar")
             .attr("x", d => xScale(d.core))
@@ -761,7 +788,7 @@ function initializeBenchmarkChart() {
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html(`Performance: ${d.performance}%`)
+                tooltip.html(`${d.core}<br/>Performance: ${d.performance}%`)
                     .style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 28) + "px");
                 
@@ -773,8 +800,10 @@ function initializeBenchmarkChart() {
                     .style("opacity", 0);
                 
                 d3.select(this).style("opacity", 1);
-            })
-            .merge(bars)
+            });
+        
+        // Update
+        barsEnter.merge(bars)
             .transition()
             .duration(500)
             .attr("x", d => xScale(d.core))
@@ -801,7 +830,10 @@ function initializeBenchmarkChart() {
             .text(d => `${d.performance}%`);
     }
     
-    return updateChart;
+    // Initialize dengan data gaming
+    updateChartFunction('gaming');
+    
+    return updateChartFunction;
 }
 
 /**
@@ -815,11 +847,324 @@ function runBenchmark() {
     runBenchmarkBtn.innerHTML = '<span class="loading">⏳</span> Menjalankan...';
     runBenchmarkBtn.disabled = true;
     
+    // Simulasi proses benchmark
     setTimeout(() => {
-        updateChart(activeWorkload);
+        if (updateChart) {
+            updateChart(activeWorkload);
+        }
+        
+        // Tampilkan hasil spesifik berdasarkan workload
+        let message = '';
+        switch(activeWorkload) {
+            case 'gaming':
+                message = '✅ Gaming: Single-core performance lebih penting!';
+                break;
+            case 'video-editing':
+                message = '✅ Video Editing: Multi-core memberikan boost performa signifikan!';
+                break;
+            case 'web-browsing':
+                message = '✅ Web Browsing: 2-4 core sudah optimal untuk browsing!';
+                break;
+        }
+        
         runBenchmarkBtn.innerHTML = originalText;
         runBenchmarkBtn.disabled = false;
-        showNotification(`Benchmark ${activeWorkload} selesai!`, 'success');
+        showNotification(`Benchmark ${activeWorkload} selesai!\n${message}`, 'success');
+    }, 1500);
+}
+
+// ==================== BENCHMARK RESULTS POPUP ====================
+
+/**
+ * Menampilkan popup hasil benchmark
+ * @param {string} workload - Jenis workload yang di-test
+ */
+function showBenchmarkResults(workload) {
+    const results = benchmarkData[workload];
+    const popup = createResultsPopup(workload, results);
+    
+    document.body.appendChild(popup);
+    
+    // Trigger animation
+    setTimeout(() => {
+        popup.classList.add('show');
+    }, 10);
+}
+
+/**
+ * Membuat popup hasil benchmark
+ */
+// ==================== BENCHMARK RESULTS POPUP ====================
+
+/**
+ * Membuat popup hasil benchmark dengan struktur awal
+ */
+function createResultsPopup(workload, results) {
+    const popup = document.createElement('div');
+    popup.className = 'benchmark-results-popup';
+    
+    const workloadNames = {
+        'gaming': 'Gaming',
+        'video-editing': 'Video Editing', 
+        'web-browsing': 'Web Browsing'
+    };
+    
+    const bestValueCore = getBestValueCore(workload, results);
+    const performanceData = getPerformanceAnalysis(workload, results);
+    const recommendation = getPracticalRecommendation(workload, results);
+    
+    popup.innerHTML = `
+        <div class="benchmark-results-content">
+            <div class="benchmark-results-header">
+                <h3>📊 Hasil Benchmark</h3>
+                <div class="workload-type">${workloadNames[workload]}</div>
+            </div>
+            
+            <div class="benchmark-summary">
+                <div class="best-performance">
+                    <div class="performance-label">REKOMENDASI TERBAIK</div>
+                    <div class="best-core">${bestValueCore.core}</div>
+                    <div class="performance-score">${bestValueCore.performance}%</div>
+                    <div class="value-badge">${recommendation.badge}</div>
+                </div>
+                
+                <div class="performance-comparison">
+                    <div class="comp-item">
+                        <span>Performa vs 1 Core:</span>
+                        <span class="comp-value positive">+${bestValueCore.vsSingle}%</span>
+                    </div>
+                    <div class="comp-item">
+                        <span>Efisiensi vs 8 Core:</span>
+                        <span class="comp-value ${bestValueCore.vsMax > -10 ? 'positive' : 'negative'}">
+                            ${bestValueCore.vsMax > 0 ? '+' : ''}${bestValueCore.vsMax}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="benchmark-insights">
+                <h4>Analisis</h4>
+                <p>${recommendation.analysis}</p>
+            </div>
+            
+            <div class="benchmark-conclusion">
+                <h4>Rekomendasi Spesifik</h4>
+                <p><strong>${recommendation.specific}</strong> - ${recommendation.details}</p>
+                <div class="cpu-examples">
+                    <strong>Contoh CPU:</strong> ${recommendation.examples}
+                </div>
+            </div>
+            
+            <div class="benchmark-results-footer">
+                <button class="close-results-btn" onclick="closeResultsPopup(this)">
+                    Tutup Hasil
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return popup;
+}
+
+/**
+ * Mencari core dengan value terbaik
+ */
+function getBestValueCore(workload, results) {
+    if (workload === 'gaming') {
+        return {
+            core: '6 Cores',
+            performance: results['6 Cores'],
+            vsSingle: results['6 Cores'] - results['1 Core'],
+            vsMax: results['6 Cores'] - results['8 Cores']
+        };
+    }
+    else if (workload === 'web-browsing') {
+        return {
+            core: '4 Cores', 
+            performance: results['4 Cores'],
+            vsSingle: results['4 Cores'] - results['1 Core'],
+            vsMax: results['4 Cores'] - results['8 Cores']
+        };
+    }
+    else {
+        return {
+            core: '8 Cores',
+            performance: results['8 Cores'],
+            vsSingle: results['8 Cores'] - results['1 Core'],
+            vsMax: 0
+        };
+    }
+}
+
+/**
+ * Analisis performa semua core
+ */
+function getPerformanceAnalysis(workload, results) {
+    const bestValueCore = getBestValueCore(workload, results).core;
+    
+    return Object.entries(results).map(([core, performance]) => ({
+        core,
+        performance,
+        isBestValue: core === bestValueCore,
+        label: getCoreLabel(workload, core, performance)
+    }));
+}
+
+/**
+ * Label untuk setiap core
+ */
+function getCoreLabel(workload, core, performance) {
+    const labels = {
+        'gaming': {
+            '1 Core': 'Minimal',
+            '2 Cores': 'Dasar', 
+            '4 Cores': 'Baik',
+            '6 Cores': 'Optimal',
+            '8 Cores': 'High-End'
+        },
+        'video-editing': {
+            '1 Core': 'Sangat Lambat',
+            '2 Cores': 'Dasar',
+            '4 Cores': 'Standar',
+            '6 Cores': 'Cepat', 
+            '8 Cores': 'Profesional'
+        },
+        'web-browsing': {
+            '1 Core': 'Terbatas',
+            '2 Cores': 'Cukup',
+            '4 Cores': 'Optimal',
+            '6 Cores': 'Berlebih',
+            '8 Cores': 'Berlebihan'
+        }
+    };
+    
+    return labels[workload]?.[core] || 'Standar';
+}
+
+/**
+ * Rekomendasi praktis berdasarkan workload
+ */
+function getPracticalRecommendation(workload, results) {
+    const recommendations = {
+        'gaming': {
+            badge: 'Sweet Spot',
+            analysis: 'Game modern lebih mengandalkan single-core performance. 6 core memberikan 95% performa 8 core dengan harga yang jauh lebih efisien. Budget lebih baik dialokasikan ke GPU.',
+            specific: '6 Core - Ryzen 5 / Core i5',
+            details: 'Prioritaskan CPU dengan clock speed tinggi dan IPC yang baik',
+            examples: 'Ryzen 5 7600X, Core i5-13600K, Ryzen 5 5600X'
+        },
+        
+        'video-editing': {
+            badge: 'Recommended', 
+            analysis: 'Rendering video sangat scalable dengan core tambahan. Setiap core baru secara signifikan mempercepat proses encoding dan rendering. 8 core adalah starting point untuk editing profesional.',
+            specific: '8+ Core - Ryzen 7 / Core i7',
+            details: 'Investasi di core tambahan sangat worth it untuk produktivitas',
+            examples: 'Ryzen 7 7700X, Core i7-13700K, Ryzen 9 7900X'
+        },
+        
+        'web-browsing': {
+            badge: 'Optimal',
+            analysis: 'Aplikasi browsing dan office tidak memanfaatkan banyak core. 4 core modern sudah memberikan pengalaman yang smooth untuk multitasking sehari-hari. Core tambahan memberikan diminishing returns.',
+            specific: '4 Core - Ryzen 3 / Core i3', 
+            details: 'Tidak perlu investasi berlebih untuk core tambahan',
+            examples: 'Ryzen 3 5300G, Core i3-13100, Ryzen 5 5600G'
+        }
+    };
+    
+    return recommendations[workload];
+}
+
+/**
+ * Mendapatkan core dengan performa terbaik
+ */
+function getBestCore(results) {
+    let bestCore = '';
+    let bestPerformance = 0;
+    
+    Object.entries(results).forEach(([core, performance]) => {
+        if (performance > bestPerformance) {
+            bestPerformance = performance;
+            bestCore = core;
+        }
+    });
+    
+    return { core: bestCore, performance: bestPerformance };
+}
+
+/**
+ * Menghitung scaling factor dari single-core ke multi-core
+ */
+function calculateScalingFactor(results) {
+    const singleCorePerf = results['1 Core'];
+    const multiCorePerf = results['8 Cores'];
+    const scaling = (multiCorePerf / singleCorePerf).toFixed(1);
+    return scaling;
+}
+
+/**
+ * Mendapatkan insights berdasarkan workload
+ */
+function getBenchmarkInsights(workload, results) {
+    const insights = {
+        'gaming': `Performance gaming meningkat ${results['8 Cores'] - results['1 Core']}% dari 1 core ke 8 core. Single-core performance masih dominan.`,
+        'video-editing': `Scaling yang excellent! Multi-core memberikan boost ${results['8 Cores'] - results['1 Core']}% untuk rendering video.`,
+        'web-browsing': `Performa optimal tercapai pada 4 core dengan ${results['4 Cores']}%. Tambahan core memberikan diminishing returns.`
+    };
+    
+    return insights[workload];
+}
+
+/**
+ * Mendapatkan kesimpulan benchmark
+ */
+function getBenchmarkConclusion(workload, results) {
+    const conclusions = {
+        'gaming': 'Prioritaskan CPU dengan clock speed tinggi. 6-8 core adalah sweet spot untuk gaming modern.',
+        'video-editing': 'Investasi di CPU multi-core sangat worth it. 8+ core akan menghemat waktu rendering secara signifikan.',
+        'web-browsing': 'CPU 4-core menawarkan value terbaik. Tidak perlu investasi berlebih untuk core tambahan.'
+    };
+    
+    return conclusions[workload];
+}
+
+/**
+ * Menutup popup hasil
+ */
+function closeResultsPopup(button) {
+    const popup = button.closest('.benchmark-results-popup');
+    popup.classList.remove('show');
+    
+    setTimeout(() => {
+        if (document.body.contains(popup)) {
+            document.body.removeChild(popup);
+        }
+    }, 300);
+}
+
+/**
+ * Menjalankan benchmark (updated version dengan popup hasil)
+ */
+function runBenchmark() {
+    const activeWorkload = document.querySelector('.workload-btn.active').dataset.workload;
+    
+    // Animasi loading pada button
+    const originalText = runBenchmarkBtn.innerHTML;
+    runBenchmarkBtn.innerHTML = '<span class="loading">⏳</span> Menjalankan...';
+    runBenchmarkBtn.disabled = true;
+    
+    // Simulasi proses benchmark
+    setTimeout(() => {
+        // Update chart (tetap di section)
+        if (updateChart) {
+            updateChart(activeWorkload);
+        }
+        
+        // Tampilkan popup hasil
+        showBenchmarkResults(activeWorkload);
+        
+        // Reset button
+        runBenchmarkBtn.innerHTML = originalText;
+        runBenchmarkBtn.disabled = false;
     }, 1500);
 }
 
@@ -897,20 +1242,100 @@ function getRecommendation() {
     });
 }
 
-// ==================== GLOSSARY FUNCTIONS ====================
-
 /**
- * Menginisialisasi fungsi toggle untuk glossary
+ * Menginisialisasi fungsi toggle untuk glossary (Enhanced)
  */
 function initializeGlossary() {
     glossaryTerms.forEach(term => {
         const toggle = term.querySelector('.term-toggle');
         const definition = term.querySelector('.term-definition');
+        const chevronIcon = term.querySelector('.chevron-icon');
         
-        toggle.addEventListener('click', function() {
-            definition.classList.toggle('expanded');
-            toggle.textContent = definition.classList.contains('expanded') ? '-' : '+';
+        // Validasi element ada
+        if (!toggle || !definition || !chevronIcon) {
+            console.warn('Glossary term tidak memiliki struktur yang lengkap:', term);
+            return;
+        }
+        
+        toggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            
+            const isCurrentlyExpanded = definition.classList.contains('expanded');
+            closeAllGlossaryTerms();
+            
+            if (!isCurrentlyExpanded) {
+                definition.classList.add('expanded');
+                term.classList.add('active');
+                chevronIcon.setAttribute('name', 'chevron-up');
+            } else {
+                definition.classList.remove('expanded');
+                term.classList.remove('active');
+                chevronIcon.setAttribute('name', 'chevron-up');
+            }
         });
+        
+        term.addEventListener('click', function(event) {
+            if (event.target === term) {
+                const isCurrentlyExpanded = definition.classList.contains('expanded');
+                closeAllGlossaryTerms();
+                
+                if (!isCurrentlyExpanded) {
+                    definition.classList.add('expanded');
+                    term.classList.add('active');
+                    chevronIcon.setAttribute('name', 'chevron-up');
+                }
+            }
+        });
+    });
+    
+    initializeGlossaryClickOutside();
+}
+
+/**
+ * Menutup semua glossary term
+ */
+function closeAllGlossaryTerms() {
+    glossaryTerms.forEach(term => {
+        const chevronIcon = term.querySelector('.chevron-icon');
+        const definition = term.querySelector('.term-definition');
+        
+        if (chevronIcon && definition) {
+            definition.classList.remove('expanded');
+            term.classList.remove('active');
+            chevronIcon.setAttribute('name', 'chevron-down');
+        }
+    });
+}
+
+/**
+ * Menutup semua glossary term
+ */
+function closeAllGlossaryTerms() {
+    glossaryTerms.forEach(term => {
+        const chevronIcon = term.querySelector('.chevron-icon');
+        const definition = term.querySelector('.term-definition');
+        
+        // Safety check sebelum manipulasi DOM
+        if (chevronIcon && definition) {
+            definition.classList.remove('expanded');
+            term.classList.remove('active');
+            chevronIcon.setAttribute('name', 'chevron-down');
+        }
+    });
+}
+
+/**
+ * Menutup glossary term ketika klik di luar area
+ */
+function initializeGlossaryClickOutside() {
+    document.addEventListener('click', function(event) {
+        const isGlossaryTerm = event.target.closest('.glossary-term');
+        const isGlossaryContainer = event.target.closest('.glossary-container');
+        
+        // Jika klik di luar glossary container, tutup semua
+        if (!isGlossaryContainer) {
+            closeAllGlossaryTerms();
+        }
     });
 }
 
@@ -1002,7 +1427,11 @@ function initializeEventListeners() {
         button.addEventListener('click', function() {
             workloadButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            updateChart(this.dataset.workload);
+            
+            // Update chart langsung saat ganti workload
+            if (updateChart) {
+                updateChart(this.dataset.workload);
+            }
         });
     });
     runBenchmarkBtn.addEventListener('click', runBenchmark);
@@ -1029,8 +1458,7 @@ function initializeEventListeners() {
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Inisialisasi chart benchmark
-    const updateChart = initializeBenchmarkChart();
-    updateChart('gaming');
+    updateChart = initializeBenchmarkChart();
     
     // Inisialisasi pipeline multi-core
     initializeMultiPipeline();
