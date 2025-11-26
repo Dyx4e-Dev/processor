@@ -1,0 +1,13 @@
+# Node / JS (jika ada package)
+node_modules/
+
+# Sistem OS
+.DS_Store
+Thumbs.db
+
+# Folder gambar besar
+img/
+
+# File sementara / backup
+*.log
+*.tmp
