@@ -7,19 +7,28 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Loading screen -->
+    <div id="loading-screen" class="loading-screen" aria-hidden="false">
+        <div class="loader" role="status" aria-label="Memuat konten">
+            <div class="spinner" aria-hidden="true"></div>
+            <div class="loader-text">Loading</div>
+        </div>
+    </div>
     <header>
         <div class="container">
             <nav>
                 <div class="logo">Kelompok 5</div>
                 <ul class="nav-links">
                     <li><a href="#analogy">Analogi</a></li>
-                    <li><a href="#technical">Teknis</a></li>
                     <li><a href="#benchmark">Benchmark</a></li>
                     <li><a href="#recommendation">Rekomendasi</a></li>
                     <li><a href="#glossary">Glosarium</a></li>
+                    <li><a href="#team">Tim</a></li>
                 </ul>
             </nav>
         </div>
@@ -28,6 +37,73 @@
     <section class="hero">
         <div class="container">
             <h1>Single-Core vs Multi-Core</h1>
+            <div class="swiper team-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/aqshal.jpg" alt="Aqshal Virgiawan" class="member-image" />
+                            </div>
+                            <h3>Aqshal Virgiawan</h3>
+                            <p class="member-role">UI/UX Designer</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/dika.jpg" alt="Dika Pida Ismail" class="member-image" />
+                            </div>
+                            <h3>Dika Pida Ismail</h3>
+                            <p class="member-role">Lead Developer</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/fauzan.jpg" alt="Fauzan Fathurrohman" class="member-image" />
+                            </div>
+                            <h3>Fauzan Fathurrohman</h3>
+                            <p class="member-role">Backend Developer</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/harlan.jpg" alt="Harlan Ikhsan" class="member-image" />
+                            </div>
+                            <h3>Harlan Ikhsan</h3>
+                            <p class="member-role">Quality Assurance</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/jasmine.jpg" alt="Jasmine Haimana Wildan" class="member-image" />
+                            </div>
+                            <h3>Jasmine Haimana Wildan</h3>
+                            <p class="member-role">Content Creator</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/rafly.jpg" alt="Rafly Al Bukhary" class="member-image" />
+                            </div>
+                            <h3>Rafly Al Bukhary</h3>
+                            <p class="member-role">Project Manager</p>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="team-member">
+                            <div class="member-image-wrapper">
+                                <img src="img/team/ridho.jpg" alt="Ridho Muhamad Ilham" class="member-image" />
+                            </div>
+                            <h3>Ridho Muhamad Ilham</h3>
+                            <p class="member-role">Frontend Developer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <p>Jelajahi perbedaan mendasar antara arsitektur prosesor single-core dan multi-core melalui visualisasi interaktif dan simulasi yang mudah dipahami.</p>
             <a href="#analogy" class="btn">Mulai Eksplorasi</a>
         </div>
@@ -97,46 +173,6 @@
         </div>
     </section>
 
-    <section id="technical" class="technical-section">
-        <div class="container">
-            <h2 class="section-title">Eksplorasi Teknis: Pipeline CPU</h2>
-            <div class="pipeline-container">
-                <div class="pipeline-controls">
-                    <button id="add-instruction" class="btn">Tambah Instruksi</button>
-                    <button id="toggle-core-view" class="btn">Toggle Single/Multi Core</button>
-                    <button id="start-pipeline" class="btn">Jalankan Pipeline</button>
-                    <button id="hazard-explanation" class="btn">Penjelasan Hazards</button>
-                </div>
-                <div class="pipeline-visualization">
-                    <div class="pipeline" id="single-pipeline">
-                        <div class="pipeline-stage">
-                            <div class="stage-title">Fetch</div>
-                            <div class="instructions-container"></div>
-                        </div>
-                        <div class="pipeline-stage">
-                            <div class="stage-title">Decode</div>
-                            <div class="instructions-container"></div>
-                        </div>
-                        <div class="pipeline-stage">
-                            <div class="stage-title">Execute</div>
-                            <div class="instructions-container"></div>
-                        </div>
-                        <div class="pipeline-stage">
-                            <div class="stage-title">Write Back</div>
-                            <div class="instructions-container"></div>
-                        </div>
-                    </div>
-                    <div class="pipeline" id="multi-pipeline" style="display: none;">
-                        <!-- Pipeline multi-core akan ditambahkan di sini -->
-                    </div>
-                </div>
-                <div class="pipeline-explanation">
-                    <p>Pipeline CPU adalah teknik yang memungkinkan beberapa instruksi diproses secara bersamaan dalam tahapan yang berbeda. Pada single-core, hanya satu pipeline yang aktif, sementara multi-core memiliki beberapa pipeline yang bekerja secara paralel.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section id="benchmark" class="benchmark-section">
         <div class="container">
             <h2 class="section-title">Simulasi Benchmark</h2>
@@ -190,7 +226,7 @@
                 </div>
                 <button id="get-recommendation" class="btn">Dapatkan Rekomendasi</button>
                 <div class="quiz-result" id="recommendation-result">
-                    <!-- Hasil rekomendasi akan ditampilkan di sini -->
+
                 </div>
             </div>
         </div>
@@ -259,12 +295,12 @@
                 <div class="logo">Kelompok 5</div>
                 <ul class="footer-links">
                     <li><a href="#analogy">Analogi</a></li>
-                    <li><a href="#technical">Teknis</a></li>
                     <li><a href="#benchmark">Benchmark</a></li>
                     <li><a href="#recommendation">Rekomendasi</a></li>
                     <li><a href="#glossary">Glosarium</a></li>
+                    <li><a href="#team">Tim</a></li>
                 </ul>
-                <p>&copy; 2025 Kelompok-5 TIF 25F. Semua hak dilindungi.</p>
+                <p>&copy; 2025 Kelompok-5 TIF RP25F.</p>
             </div>
         </div>
     </footer>

@@ -1,0 +1,9 @@
+Langkah update:
+
+1. CSS: Sembunyikan tombol prev/next dengan display: none
+2. CSS: Tambah pseudo-element atau overlay untuk zona click kiri-kanan
+3. JS: Tambah event listener di zona kiri untuk slidePrev(), zona kanan untuk slideNext()
+
+File yang akan diupdate:
+- style.css: sembunyikan button, tambah styling zona click
+- script.js: tambah event listener di zone kiri-kanan
