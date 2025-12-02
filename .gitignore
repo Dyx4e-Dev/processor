@@ -6,7 +6,7 @@ node_modules/
 Thumbs.db
 
 # Folder gambar besar
-img/
+# img/
 
 # File sementara / backup
 *.log
